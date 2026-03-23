@@ -2,8 +2,9 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { benefitOptions, diseaseCategories } from '@/data/medicalConditions';
+import { programs as fallbackPrograms } from '@/data/programs';
 import { calculateAge, findMatches } from '@/lib/match';
-import type { MatchResult, Profile } from '@/lib/types';
+import type { MatchResult, Profile, Program } from '@/lib/types';
 import { inferLocationFromZip } from '@/lib/zip';
 
 const emptyProfile = (): Profile => ({
@@ -65,6 +66,10 @@ export default function BenefitFinderApp() {
   const [expandedId, setExpandedId] = useState<string>('');
   const [voiceSupported, setVoiceSupported] = useState(false);
   const [confidenceFilter, setConfidenceFilter] = useState<'All' | 'High' | 'Medium' | 'Low'>('All');
+  const [programLibrary, setProgramLibrary] = useState<Program[]>(fallbackPrograms);
+  const [lastProgramSync, setLastProgramSync] = useState<string>('');
+  const [dataStatus, setDataStatus] = useState<'idle' | 'refreshing' | 'ready' | 'error'>('idle');
+  const [results, setResults] = useState<MatchResult[]>([]);
 
   useEffect(() => {
     const saved = window.localStorage.getItem('benefitfinder-profiles-v2');
@@ -73,6 +78,7 @@ export default function BenefitFinderApp() {
       if (parsed.length > 0) {
         setProfiles(parsed);
         setActiveProfileId(parsed[0].id);
+        setVoiceSupported(Boolean(window.SpeechRecognition || window.webkitSpeechRecognition));
         return;
       }
     }
@@ -92,14 +98,53 @@ export default function BenefitFinderApp() {
     setVoiceSupported(Boolean(window.SpeechRecognition || window.webkitSpeechRecognition));
   }, []);
 
+  async function refreshProgramLibrary() {
+    setDataStatus('refreshing');
+    try {
+      const response = await fetch('/api/programs', { cache: 'no-store' });
+      if (!response.ok) throw new Error('Failed to load program data');
+      const payload = (await response.json()) as { updatedAt?: string; programs?: Program[] };
+      if (Array.isArray(payload.programs) && payload.programs.length > 0) {
+        setProgramLibrary(payload.programs);
+        setLastProgramSync(payload.updatedAt || new Date().toISOString());
+        setDataStatus('ready');
+        return;
+      }
+      throw new Error('Program payload was empty');
+    } catch {
+      setProgramLibrary(fallbackPrograms);
+      setLastProgramSync(new Date().toISOString());
+      setDataStatus('error');
+    }
+  }
+
+  useEffect(() => {
+    void refreshProgramLibrary();
+    const intervalId = window.setInterval(() => {
+      void refreshProgramLibrary();
+    }, 5 * 60 * 1000);
+    return () => window.clearInterval(intervalId);
+  }, []);
+
   const activeProfile = profiles.find((p) => p.id === activeProfileId) ?? profiles[0];
   const selectedDiseaseNames = activeProfile?.diseaseCategory
     ? [...(diseaseCategories[activeProfile.diseaseCategory as keyof typeof diseaseCategories] ?? [])]
     : [];
 
-  const results = useMemo(() => (activeProfile ? findMatches(activeProfile) : []), [activeProfile]);
+  const activeProfileKey = JSON.stringify(activeProfile ?? {});
 
-  const filteredResults = useMemo(() => (confidenceFilter === 'All' ? results : results.filter((result) => result.confidence === confidenceFilter)), [results, confidenceFilter]);
+  useEffect(() => {
+    if (!activeProfile) {
+      setResults([]);
+      return;
+    }
+    setResults(findMatches(activeProfile, programLibrary));
+  }, [activeProfileKey, programLibrary]);
+
+  const filteredResults = useMemo(
+    () => (confidenceFilter === 'All' ? results : results.filter((result) => result.confidence === confidenceFilter)),
+    [results, confidenceFilter]
+  );
 
   function updateProfile<K extends keyof Profile>(key: K, value: Profile[K]) {
     setProfiles((current) =>
@@ -179,12 +224,13 @@ export default function BenefitFinderApp() {
           <p className="eyebrow">Senior and disabled benefit discovery</p>
           <h1>BenefitFinder Pro Pennsylvania Data Build</h1>
           <p className="subcopy">
-            Guided benefit matching with official Pennsylvania program data layered into the app for seniors, disabled users, caregivers, desktops, and smartphones.
+            Guided benefit matching with official Pennsylvania program data layered into the app for seniors, disabled users, caregivers, desktops, and smartphones. Program data now auto-refreshes in the app.
           </p>
         </div>
         <div className="heroActions">
           <button onClick={addProfile}>Add Profile</button>
           <button onClick={saveResultsAsPrint}>Print Results</button>
+          <button onClick={() => void refreshProgramLibrary()}>{dataStatus === 'refreshing' ? 'Refreshing Data...' : 'Refresh Program Data'}</button>
           <button onClick={speakTopResults} disabled={!results.length}>Read Top Results</button>
           {filteredResults.length === 0 && <p className="smallMuted">No results match the current filter yet. Try switching back to All results.</p>}
         </div>
@@ -205,7 +251,19 @@ export default function BenefitFinderApp() {
             ))}
           </div>
           <p className="smallMuted">Profiles are stored in this browser with local storage.</p>
-          <div className="liveStatus"><strong>Live matching</strong><span>Results refresh automatically whenever you change profile information.</span></div>
+          <div className="liveStatus">
+            <strong>Live matching</strong>
+            <span>Results refresh automatically whenever you change profile information.</span>
+            <span>
+              {dataStatus === 'ready'
+                ? `Program data refreshed ${new Date(lastProgramSync).toLocaleString()}`
+                : dataStatus === 'refreshing'
+                  ? 'Refreshing program data now...'
+                  : dataStatus === 'error'
+                    ? 'Using built-in program data fallback.'
+                    : 'Loading program data...'}
+            </span>
+          </div>
         </aside>
 
         {activeProfile && (
@@ -381,7 +439,7 @@ export default function BenefitFinderApp() {
         <div className="sectionTitleRow">
           <div>
             <h2>Matched Results</h2>
-            <p className="smallMuted">Results are grouped by confidence so users can focus first on the strongest opportunities.</p>
+            <p className="smallMuted">Results are grouped by confidence so users can focus first on the strongest opportunities. Matches recompute instantly when profile details or program data change.</p>
           </div>
           <div className="filtersWrap"><label className="filterLabel">Show<select value={confidenceFilter} onChange={(e) => setConfidenceFilter(e.target.value as 'All' | 'High' | 'Medium' | 'Low')}><option value="All">All results</option><option value="High">High chance</option><option value="Medium">Possible fit</option><option value="Low">Lower fit</option></select></label></div>
         </div>

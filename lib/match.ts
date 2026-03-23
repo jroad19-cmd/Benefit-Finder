@@ -1,4 +1,4 @@
-import { programs } from '@/data/programs';
+import { programs as defaultPrograms } from '@/data/programs';
 import type { MatchResult, Profile, Program } from '@/lib/types';
 
 const medicalAliases: Record<string, string[]> = {
@@ -57,10 +57,10 @@ export function calculateAge(birthday: string) {
   return age;
 }
 
-export function findMatches(profile: Profile): MatchResult[] {
+export function findMatches(profile: Profile, library: Program[] = defaultPrograms): MatchResult[] {
   const annualIncome = profile.monthlyIncome * 12;
 
-  const results = programs.map((program) => {
+  const results = library.map((program) => {
     const annualLimit = householdAdjustedAnnualLimit(program, profile.householdSize);
     const monthlyLimit = householdAdjustedMonthlyLimit(program, profile.householdSize);
     const scoreRef = { value: 0 };
@@ -94,8 +94,14 @@ export function findMatches(profile: Profile): MatchResult[] {
     if (program.housingTags && profile.housingStatus && !program.housingTags.includes(profile.housingStatus)) scoreRef.value -= 15;
     if (program.employmentTags && profile.employmentStatus && !program.employmentTags.includes(profile.employmentStatus)) scoreRef.value -= 15;
 
-    if (program.requiresDisability && profile.disabilityStatus && profile.disabilityImpact === 'Severe') { scoreRef.value += 6; reasons.push('Severe disability impact may strengthen need-based eligibility.'); }
-    if (program.medicalTags && profile.treatmentStatus && ['In Treatment', 'Newly Diagnosed', 'Long-Term Disability'].includes(profile.treatmentStatus)) { scoreRef.value += 5; reasons.push('Treatment status may strengthen medical assistance matching.'); }
+    if (program.requiresDisability && profile.disabilityStatus && profile.disabilityImpact === 'Severe') {
+      scoreRef.value += 6;
+      reasons.push('Severe disability impact may strengthen need-based eligibility.');
+    }
+    if (program.medicalTags && profile.treatmentStatus && ['In Treatment', 'Newly Diagnosed', 'Long-Term Disability'].includes(profile.treatmentStatus)) {
+      scoreRef.value += 5;
+      reasons.push('Treatment status may strengthen medical assistance matching.');
+    }
 
     const score = Math.max(0, Math.min(100, scoreRef.value));
     const confidence = score >= 70 ? 'High' : score >= 45 ? 'Medium' : 'Low';
