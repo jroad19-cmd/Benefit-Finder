@@ -104,9 +104,9 @@ export function findMatches(profile: Profile, library: Program[] = defaultProgra
     addReason(profile.disabilityImpact === 'Severe', scoreRef, reasons, 'Severe disability impact may strengthen priority or need-based fit.', 6);
     addReason(profile.treatmentStatus === 'In Treatment' || profile.treatmentStatus === 'Newly Diagnosed', scoreRef, reasons, 'Current treatment timing may strengthen immediate assistance fit.', 6);
 
-    if (!monthlyIncomeCompatible) reasons.push('Monthly income appears above this program's estimated range.');
-    if (!annualIncomeCompatible) reasons.push('Annual income appears above this program's estimated range.');
-    if (!assetsCompatible) reasons.push('Assets may be above this program's estimated resource limit.');
+    if (!monthlyIncomeCompatible) reasons.push('Monthly income appears above this program estimated range.');
+    if (!annualIncomeCompatible) reasons.push('Annual income appears above this program estimated range.');
+    if (!assetsCompatible) reasons.push('Assets may be above this program estimated resource limit.');
     if (!medicalCompatible && profile.diseaseName) reasons.push('Condition does not closely align with this disease-specific aid.');
     if (!benefitCompatible && profile.currentBenefits.length > 0) reasons.push('Current benefit status does not clearly support this match.');
 

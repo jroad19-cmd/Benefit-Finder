@@ -69,7 +69,6 @@ export default function BenefitFinderApp() {
   const [programLibrary, setProgramLibrary] = useState<Program[]>(fallbackPrograms);
   const [lastProgramSync, setLastProgramSync] = useState<string>('');
   const [dataStatus, setDataStatus] = useState<'idle' | 'refreshing' | 'ready' | 'error'>('idle');
-  const [results, setResults] = useState<MatchResult[]>([]);
 
   useEffect(() => {
     const saved = window.localStorage.getItem('benefitfinder-profiles-v2');
@@ -131,15 +130,10 @@ export default function BenefitFinderApp() {
     ? [...(diseaseCategories[activeProfile.diseaseCategory as keyof typeof diseaseCategories] ?? [])]
     : [];
 
-  const activeProfileKey = JSON.stringify(activeProfile ?? {});
-
-  useEffect(() => {
-    if (!activeProfile) {
-      setResults([]);
-      return;
-    }
-    setResults(findMatches(activeProfile, programLibrary));
-  }, [activeProfileKey, programLibrary]);
+  const results = useMemo(() => {
+    if (!activeProfile) return [] as MatchResult[];
+    return findMatches(activeProfile, programLibrary);
+  }, [activeProfile, programLibrary]);
 
   const filteredResults = useMemo(
     () => (confidenceFilter === 'All' ? results : results.filter((result) => result.confidence === confidenceFilter)),
