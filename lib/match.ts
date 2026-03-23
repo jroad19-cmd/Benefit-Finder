@@ -60,59 +60,66 @@ export function calculateAge(birthday: string) {
 export function findMatches(profile: Profile, library: Program[] = defaultPrograms): MatchResult[] {
   const annualIncome = profile.monthlyIncome * 12;
 
-  const results = library.map((program) => {
+  const results = library.flatMap((program) => {
     const annualLimit = householdAdjustedAnnualLimit(program, profile.householdSize);
     const monthlyLimit = householdAdjustedMonthlyLimit(program, profile.householdSize);
     const scoreRef = { value: 0 };
     const reasons: string[] = [];
 
+    const stateCompatible = !program.states || !profile.state || program.states.includes(profile.state);
+    const housingCompatible = !program.housingTags || !profile.housingStatus || program.housingTags.includes(profile.housingStatus);
+    const employmentCompatible = !program.employmentTags || !profile.employmentStatus || program.employmentTags.includes(profile.employmentStatus);
+    const benefitCompatible = !program.currentBenefitTags || program.currentBenefitTags.length === 0 || profile.currentBenefits.length === 0 || program.currentBenefitTags.some((b) => profile.currentBenefits.includes(b));
+    const monthlyIncomeCompatible = !monthlyLimit || profile.monthlyIncome <= monthlyLimit;
+    const annualIncomeCompatible = !annualLimit || annualIncome <= annualLimit;
+    const assetsCompatible = !program.assetsMax || profile.assets <= program.assetsMax;
+    const householdCompatible = !program.householdMax || profile.householdSize <= program.householdMax;
+    const medicalCompatible = !program.medicalTags || matchesMedicalTag(profile.diseaseName, program.medicalTags);
+    const veteranCompatible = !program.veteranOnly || profile.veteranStatus;
+    const disabilityCompatible = !program.requiresDisability || profile.disabilityStatus;
+
+    if (!stateCompatible || !housingCompatible || !employmentCompatible || !veteranCompatible || !disabilityCompatible) {
+      return [];
+    }
+
+    if (program.id === 'pa-property-tax-rent-rebate') {
+      const ageOrDisabilityEligible = profile.age >= 65 || profile.disabilityStatus;
+      if (!ageOrDisabilityEligible) return [];
+    }
+
     addReason(true, scoreRef, reasons, 'Program is in the search library.', 8);
-    addReason(!program.states || program.states.includes(profile.state), scoreRef, reasons, 'Location matches this program scope.', 18);
+    addReason(stateCompatible, scoreRef, reasons, 'Location matches this program scope.', 18);
     addReason(!program.minAge || profile.age >= program.minAge, scoreRef, reasons, 'Age appears to meet program rules.', 14);
-    addReason(!program.requiresDisability || profile.disabilityStatus, scoreRef, reasons, 'Disability-related rule appears to fit.', 18);
-    addReason(!monthlyLimit || profile.monthlyIncome <= monthlyLimit, scoreRef, reasons, monthlyLimit && profile.householdSize > 1 ? `Monthly income appears within the estimated range for a household of ${profile.householdSize}.` : 'Monthly income appears within the target range.', 16);
-    addReason(!annualLimit || annualIncome <= annualLimit, scoreRef, reasons, annualLimit && profile.householdSize > 1 ? `Annual income appears within the estimated range for a household of ${profile.householdSize}.` : 'Annual income appears within the target range.', 16);
-    addReason(!program.assetsMax || profile.assets <= program.assetsMax, scoreRef, reasons, 'Assets appear within the target range.', 10);
-    addReason(!program.householdMax || profile.householdSize <= program.householdMax, scoreRef, reasons, 'Household size fits the available rule.', 5);
-    addReason(!program.medicalTags || matchesMedicalTag(profile.diseaseName, program.medicalTags), scoreRef, reasons, 'Medical condition aligns with this disease-specific aid.', 24);
-    addReason(!program.currentBenefitTags || program.currentBenefitTags.some((b) => profile.currentBenefits.includes(b)), scoreRef, reasons, 'Current benefit information supports this match.', 12);
+    addReason(disabilityCompatible, scoreRef, reasons, 'Disability-related rule appears to fit.', 18);
+    addReason(monthlyIncomeCompatible, scoreRef, reasons, monthlyLimit && profile.householdSize > 1 ? `Monthly income appears within the estimated range for a household of ${profile.householdSize}.` : 'Monthly income appears within the target range.', 16);
+    addReason(annualIncomeCompatible, scoreRef, reasons, annualLimit && profile.householdSize > 1 ? `Annual income appears within the estimated range for a household of ${profile.householdSize}.` : 'Annual income appears within the target range.', 16);
+    addReason(assetsCompatible, scoreRef, reasons, 'Assets appear within the target range.', 10);
+    addReason(householdCompatible, scoreRef, reasons, 'Household size fits the available rule.', 5);
+    addReason(medicalCompatible, scoreRef, reasons, 'Medical condition aligns with this disease-specific aid.', 24);
+    addReason(benefitCompatible, scoreRef, reasons, 'Current benefit information supports this match.', 12);
     addReason(!program.veteranOnly || profile.veteranStatus, scoreRef, reasons, 'Veteran status aligns with program rules.', 18);
     addReason(!program.caregiverHelpful || profile.caregiverMode, scoreRef, reasons, 'Caregiver mode may improve this program fit.', 8);
-    addReason(!program.housingTags || program.housingTags.includes(profile.housingStatus), scoreRef, reasons, 'Housing situation aligns with this program.', 10);
-    addReason(!program.employmentTags || program.employmentTags.includes(profile.employmentStatus), scoreRef, reasons, 'Employment or retirement status aligns with this program.', 10);
-    addReason(Boolean(profile.city && profile.state), scoreRef, reasons, `Location was detected as ${profile.city}, ${profile.state}.`, 4);
+    addReason(housingCompatible, scoreRef, reasons, 'Housing status matches this program type.', 10);
+    addReason(employmentCompatible, scoreRef, reasons, 'Employment status fits this program type.', 8);
+    addReason(profile.disabilityImpact === 'Severe', scoreRef, reasons, 'Severe disability impact may strengthen priority or need-based fit.', 6);
+    addReason(profile.treatmentStatus === 'In Treatment' || profile.treatmentStatus === 'Newly Diagnosed', scoreRef, reasons, 'Current treatment timing may strengthen immediate assistance fit.', 6);
 
-    const missingInfo = buildMissingInfo(profile, program);
-    if (program.states && profile.state && !program.states.includes(profile.state)) scoreRef.value -= 40;
-    if (program.minAge && profile.age && profile.age < program.minAge) scoreRef.value -= 35;
-    if (program.requiresDisability && !profile.disabilityStatus) scoreRef.value -= 38;
-    if (monthlyLimit && profile.monthlyIncome > monthlyLimit) scoreRef.value -= 24;
-    if (annualLimit && annualIncome > annualLimit) scoreRef.value -= 24;
-    if (program.assetsMax && profile.assets > program.assetsMax) scoreRef.value -= 18;
-    if (program.veteranOnly && !profile.veteranStatus) scoreRef.value -= 45;
-    if (program.medicalTags && profile.diseaseName && !matchesMedicalTag(profile.diseaseName, program.medicalTags)) scoreRef.value -= 30;
-    if (program.housingTags && profile.housingStatus && !program.housingTags.includes(profile.housingStatus)) scoreRef.value -= 15;
-    if (program.employmentTags && profile.employmentStatus && !program.employmentTags.includes(profile.employmentStatus)) scoreRef.value -= 15;
-
-    if (program.requiresDisability && profile.disabilityStatus && profile.disabilityImpact === 'Severe') {
-      scoreRef.value += 6;
-      reasons.push('Severe disability impact may strengthen need-based eligibility.');
-    }
-    if (program.medicalTags && profile.treatmentStatus && ['In Treatment', 'Newly Diagnosed', 'Long-Term Disability'].includes(profile.treatmentStatus)) {
-      scoreRef.value += 5;
-      reasons.push('Treatment status may strengthen medical assistance matching.');
-    }
+    if (!monthlyIncomeCompatible) reasons.push('Monthly income appears above this program's estimated range.');
+    if (!annualIncomeCompatible) reasons.push('Annual income appears above this program's estimated range.');
+    if (!assetsCompatible) reasons.push('Assets may be above this program's estimated resource limit.');
+    if (!medicalCompatible && profile.diseaseName) reasons.push('Condition does not closely align with this disease-specific aid.');
+    if (!benefitCompatible && profile.currentBenefits.length > 0) reasons.push('Current benefit status does not clearly support this match.');
 
     const score = Math.max(0, Math.min(100, scoreRef.value));
-    const confidence = score >= 70 ? 'High' : score >= 45 ? 'Medium' : 'Low';
+    const confidence: MatchResult['confidence'] = score >= 80 ? 'High' : score >= 55 ? 'Medium' : 'Low';
 
-    return {
+    return [{
       program,
-      score,
       confidence,
-      reasons,
-      missingInfo
-    } satisfies MatchResult;
+      score,
+      reasons: Array.from(new Set(reasons)),
+      missingInfo: buildMissingInfo(profile, program)
+    }];
   });
 
   return results.sort((a, b) => b.score - a.score);

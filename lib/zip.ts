@@ -9,6 +9,7 @@ export const zipMap: Record<string, ZipLocation> = {
   '15636': { city: 'Harrison City', state: 'PA' },
   '15642': { city: 'Irwin', state: 'PA' },
   '15650': { city: 'Latrobe', state: 'PA' },
+  '15658': { city: 'Ligonier', state: 'PA' },
   '15668': { city: 'Murrysville', state: 'PA' },
   '15679': { city: 'Ruffs Dale', state: 'PA' },
   '15687': { city: 'Stahlstown', state: 'PA' },

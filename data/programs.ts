@@ -8,6 +8,7 @@ export const programs: Program[] = [
     scope: 'State',
     states: ['PA'],
     annualIncomeMax: 48110,
+    housingTags: ['Own', 'Rent'],
     difficulty: 'Easy',
     approvalEstimate: 'Several weeks to a few months during filing season',
     description:
