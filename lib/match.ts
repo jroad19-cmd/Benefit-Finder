@@ -1,6 +1,19 @@
 import { programs } from '@/data/programs';
 import type { MatchResult, Profile, Program } from '@/lib/types';
 
+const medicalAliases: Record<string, string[]> = {
+  'Small Cell Lung Cancer': ['Small Cell Lung Cancer', 'Lung Cancer'],
+  'Non-Small Cell Lung Cancer': ['Non-Small Cell Lung Cancer', 'Lung Cancer'],
+  'Multiple Myeloma': ['Multiple Myeloma', 'Lymphoma', 'Leukemia']
+};
+
+function matchesMedicalTag(profileDisease: string, programTags?: string[]) {
+  if (!programTags || programTags.length === 0) return true;
+  if (!profileDisease) return false;
+  const candidates = medicalAliases[profileDisease] ?? [profileDisease];
+  return candidates.some((candidate) => programTags.includes(candidate));
+}
+
 function householdAdjustedAnnualLimit(program: Program, householdSize: number) {
   if (!program.annualIncomeMax) return undefined;
   return program.annualIncomeMax + Math.max(0, householdSize - 1) * (program.incomeIncreasePerAdditionalPersonAnnual ?? 0);
@@ -61,7 +74,7 @@ export function findMatches(profile: Profile): MatchResult[] {
     addReason(!annualLimit || annualIncome <= annualLimit, scoreRef, reasons, annualLimit && profile.householdSize > 1 ? `Annual income appears within the estimated range for a household of ${profile.householdSize}.` : 'Annual income appears within the target range.', 16);
     addReason(!program.assetsMax || profile.assets <= program.assetsMax, scoreRef, reasons, 'Assets appear within the target range.', 10);
     addReason(!program.householdMax || profile.householdSize <= program.householdMax, scoreRef, reasons, 'Household size fits the available rule.', 5);
-    addReason(!program.medicalTags || program.medicalTags.includes(profile.diseaseName), scoreRef, reasons, 'Medical condition aligns with this disease-specific aid.', 24);
+    addReason(!program.medicalTags || matchesMedicalTag(profile.diseaseName, program.medicalTags), scoreRef, reasons, 'Medical condition aligns with this disease-specific aid.', 24);
     addReason(!program.currentBenefitTags || program.currentBenefitTags.some((b) => profile.currentBenefits.includes(b)), scoreRef, reasons, 'Current benefit information supports this match.', 12);
     addReason(!program.veteranOnly || profile.veteranStatus, scoreRef, reasons, 'Veteran status aligns with program rules.', 18);
     addReason(!program.caregiverHelpful || profile.caregiverMode, scoreRef, reasons, 'Caregiver mode may improve this program fit.', 8);
@@ -77,7 +90,7 @@ export function findMatches(profile: Profile): MatchResult[] {
     if (annualLimit && annualIncome > annualLimit) scoreRef.value -= 24;
     if (program.assetsMax && profile.assets > program.assetsMax) scoreRef.value -= 18;
     if (program.veteranOnly && !profile.veteranStatus) scoreRef.value -= 45;
-    if (program.medicalTags && profile.diseaseName && !program.medicalTags.includes(profile.diseaseName)) scoreRef.value -= 30;
+    if (program.medicalTags && profile.diseaseName && !matchesMedicalTag(profile.diseaseName, program.medicalTags)) scoreRef.value -= 30;
     if (program.housingTags && profile.housingStatus && !program.housingTags.includes(profile.housingStatus)) scoreRef.value -= 15;
     if (program.employmentTags && profile.employmentStatus && !program.employmentTags.includes(profile.employmentStatus)) scoreRef.value -= 15;
 

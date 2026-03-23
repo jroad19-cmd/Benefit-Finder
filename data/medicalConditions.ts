@@ -2,10 +2,13 @@ export const diseaseCategories = {
   Cancer: [
     'Breast Cancer',
     'Lung Cancer',
+    'Small Cell Lung Cancer',
+    'Non-Small Cell Lung Cancer',
     'Colon Cancer',
     'Prostate Cancer',
     'Leukemia',
     'Lymphoma',
+    'Multiple Myeloma',
     'Pancreatic Cancer',
     'Ovarian Cancer'
   ],

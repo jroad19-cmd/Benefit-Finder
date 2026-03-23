@@ -346,6 +346,67 @@ export const programs: Program[] = [
     websiteLabel: 'Official PA BCCEDP page',
     websiteUrl: 'https://www.pa.gov/services/health/apply-for-breast-and-cervical-cancer-prevention-program'
   },
+
+  {
+    id: 'small-cell-lung-cancer-support',
+    name: 'Small Cell Lung Cancer Support Grants',
+    category: 'Disease-Specific Grant Help',
+    scope: 'Nonprofit',
+    medicalTags: ['Small Cell Lung Cancer'],
+    difficulty: 'Moderate',
+    approvalEstimate: 'Varies by nonprofit funding cycle',
+    description:
+      'Disease-specific grant and support programs that can help with transportation, treatment-related costs, lodging, and urgent living expenses for people facing small cell lung cancer.',
+    eligibilitySummary: [
+      'Best fit for people with a documented small cell lung cancer diagnosis',
+      'Often strongest during active treatment or immediately after diagnosis',
+      'May require proof of financial need and oncology documentation'
+    ],
+    documents: ['Diagnosis confirmation', 'Treatment plan or oncology note', 'Proof of income', 'Travel, lodging, or prescription cost details'],
+    applySteps: ['Review nonprofit program requirements', 'Gather diagnosis and expense documents', 'Apply to one or more disease-specific assistance funds'],
+    websiteLabel: 'Start with lung cancer assistance search',
+    websiteUrl: 'https://www.cancercare.org/financial'
+  },
+  {
+    id: 'multiple-myeloma-support',
+    name: 'Multiple Myeloma Patient Aid Programs',
+    category: 'Disease-Specific Grant Help',
+    scope: 'Nonprofit',
+    medicalTags: ['Multiple Myeloma'],
+    difficulty: 'Moderate',
+    approvalEstimate: 'Varies by nonprofit funding cycle',
+    description:
+      'Patient aid programs that can help people with multiple myeloma find disease-specific financial assistance, medication help, travel support, and care coordination resources.',
+    eligibilitySummary: [
+      'Best fit for people with a documented multiple myeloma diagnosis',
+      'Can be especially relevant during active treatment or long-term disability',
+      'May require diagnosis, insurance, and income documentation'
+    ],
+    documents: ['Diagnosis confirmation', 'Insurance information', 'Proof of income', 'Medication or treatment cost information'],
+    applySteps: ['Identify open patient-aid funds', 'Prepare diagnosis and financial records', 'Apply to disease-specific and general cancer assistance programs'],
+    websiteLabel: 'Start with blood cancer assistance search',
+    websiteUrl: 'https://www.cancercare.org/financial'
+  },
+  {
+    id: 'lung-cancer-general-support',
+    name: 'Lung Cancer Travel and Treatment Support',
+    category: 'Disease-Specific Grant Help',
+    scope: 'Nonprofit',
+    medicalTags: ['Lung Cancer', 'Small Cell Lung Cancer', 'Non-Small Cell Lung Cancer'],
+    difficulty: 'Moderate',
+    approvalEstimate: 'Varies by program and open funding',
+    description:
+      'Support options that can help with treatment travel, lodging, co-pays, and urgent living costs for people with lung cancer subtypes.',
+    eligibilitySummary: [
+      'Fits lung cancer and subtype diagnoses',
+      'Often stronger if treatment is active or recent',
+      'May require diagnosis and financial screening'
+    ],
+    documents: ['Diagnosis documentation', 'Treatment note', 'Proof of income', 'Expense details'],
+    applySteps: ['Check open assistance programs', 'Prepare oncology and expense documents', 'Apply to the programs that match the user’s subtype and need'],
+    websiteLabel: 'Start with cancer financial assistance search',
+    websiteUrl: 'https://www.cancercare.org/financial'
+  },
   {
     id: 'pa-medi-counseling',
     name: 'PA MEDI Medicare Counseling',

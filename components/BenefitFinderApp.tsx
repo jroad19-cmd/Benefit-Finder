@@ -65,7 +65,6 @@ export default function BenefitFinderApp() {
   const [expandedId, setExpandedId] = useState<string>('');
   const [voiceSupported, setVoiceSupported] = useState(false);
   const [confidenceFilter, setConfidenceFilter] = useState<'All' | 'High' | 'Medium' | 'Low'>('All');
-  const [results, setResults] = useState<MatchResult[]>([]);
 
   useEffect(() => {
     const saved = window.localStorage.getItem('benefitfinder-profiles-v2');
@@ -98,9 +97,7 @@ export default function BenefitFinderApp() {
     ? [...(diseaseCategories[activeProfile.diseaseCategory as keyof typeof diseaseCategories] ?? [])]
     : [];
 
-  useEffect(() => {
-    setResults(activeProfile ? findMatches(activeProfile) : []);
-  }, [profiles, activeProfileId, activeProfile]);
+  const results = useMemo(() => (activeProfile ? findMatches(activeProfile) : []), [activeProfile]);
 
   const filteredResults = useMemo(() => (confidenceFilter === 'All' ? results : results.filter((result) => result.confidence === confidenceFilter)), [results, confidenceFilter]);
 
@@ -113,9 +110,14 @@ export default function BenefitFinderApp() {
         if (key === 'zip') {
           const normalizedZip = String(value).replace(/\D/g, '').slice(0, 5);
           updated.zip = normalizedZip;
-          const location = inferLocationFromZip(normalizedZip);
-          updated.city = location.city;
-          updated.state = location.state;
+          if (normalizedZip.length === 5) {
+            const location = inferLocationFromZip(normalizedZip);
+            updated.city = location.city;
+            updated.state = location.state;
+          } else {
+            updated.city = '';
+            updated.state = '';
+          }
         }
         if (key === 'diseaseCategory' && value !== profile.diseaseCategory) {
           updated.diseaseName = '';
@@ -231,12 +233,20 @@ export default function BenefitFinderApp() {
                 <input value={activeProfile.zip} onChange={(e) => updateProfile('zip', e.target.value.replace(/\D/g, '').slice(0, 5))} />
               </label>
               <label>
-                Detected city
+                Detected city or area
                 <input value={activeProfile.city || (activeProfile.zip.length === 5 ? 'No city match yet' : '')} readOnly />
               </label>
               <label>
                 Detected state
                 <input value={activeProfile.state || (activeProfile.zip.length === 5 ? 'No state match yet' : '')} readOnly />
+              </label>
+              <label>
+                Manual city override
+                <input value={activeProfile.city} onChange={(e) => updateProfile('city', e.target.value)} placeholder="Type city if auto-detect is off" />
+              </label>
+              <label>
+                Manual state override
+                <input value={activeProfile.state} onChange={(e) => updateProfile('state', e.target.value.toUpperCase().slice(0, 2))} placeholder="PA" />
               </label>
               <label>
                 Citizenship
