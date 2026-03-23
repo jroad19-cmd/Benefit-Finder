@@ -1,0 +1,16 @@
+id,test_name,profile_input,expected_outcome,rationale
+QA-001,PA PTRR income hard stop,state=PA; housing=owner; age=70; annual_income=100000,PTRR not eligible,Income above published PTRR bracket max
+QA-002,PA PTRR housing hard stop,state=PA; housing=homeless; age=70; annual_income=20000,PTRR not eligible,Program only for homeowners/renters
+QA-003,PA-only filtering,state=AL; age=70,No PA-only program eligible,Changing state must remove PA-only results
+QA-004,Homestead owner gate,state=PA; housing=renter; owner_occupied=false,Homestead/Farmstead not eligible,Owner-occupied primary residence required
+QA-005,Homestead deadline info,state=PA; housing=owner; owner_occupied=true,Homestead/Farmstead visible with March 1 deadline note,App should present deadline and county assessment office path
+QA-006,Multiple myeloma vs lung cancer program,diagnosis=Multiple Myeloma,No lung-cancer-specific program eligible,Specific diagnosis mismatch
+QA-007,General cancer support,diagnosis=Multiple Myeloma,General cancer support can be shown,Cancer umbrella allowed when source is broad
+QA-008,CHC age/Medicaid gate,state=PA; age=19; Medicaid=yes,CHC not eligible,CHC requires 21+
+QA-009,CHC pathway gate,state=PA; age=70; Medicaid=yes; Medicare=no; LTSS_need=no,CHC not eligible,Must be dual eligible or need LTSS/nursing-facility level of care
+QA-010,MAWD work gate,state=PA; disability=yes; employed=no,MAWD not eligible,Paid employment required
+QA-011,State Blind Pension income gate,state=PA; age=40; vision qualifying=yes; annual_net_income=5000; property=1000,State Blind Pension not eligible,"Income above $4,260"
+QA-012,MATP MA gate,state=PA; Medicaid=no,MATP not eligible,Medical Assistance required
+QA-013,PA MEDI non-financial support,state=PA; Medicare=yes,"PA MEDI visible as counseling, not scored cash benefit",Navigation support should not be treated like financial aid
+QA-014,Unclaimed property logic,state=PA,Unclaimed property shown as search opportunity,Should not use income/age scoring
+QA-015,Senior Farmers age gate,state=PA; age=59,Senior Farmers not eligible,Must be 60+
