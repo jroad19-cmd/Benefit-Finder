@@ -29,6 +29,8 @@ export const programs: Program[] = [
     category: 'Food Assistance',
     scope: 'State',
     states: ['PA'],
+    householdMax: 8,
+    incomeIncreasePerAdditionalPersonMonthly: 512,
     difficulty: 'Moderate',
     approvalEstimate: 'Usually within 30 days; faster for emergencies',
     description:
@@ -153,6 +155,8 @@ export const programs: Program[] = [
     category: 'Utility Assistance',
     scope: 'State',
     states: ['PA'],
+    householdMax: 8,
+    incomeIncreasePerAdditionalPersonAnnual: 6500,
     difficulty: 'Moderate',
     approvalEstimate: 'Varies during the season',
     description:
@@ -174,6 +178,8 @@ export const programs: Program[] = [
     scope: 'State',
     states: ['PA'],
     minAge: 60,
+    householdMax: 6,
+    incomeIncreasePerAdditionalPersonAnnual: 6700,
     difficulty: 'Easy',
     approvalEstimate: 'Varies by local food bank availability',
     description:

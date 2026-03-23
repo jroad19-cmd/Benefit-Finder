@@ -64,6 +64,8 @@ export default function BenefitFinderApp() {
   const [activeProfileId, setActiveProfileId] = useState<string>('');
   const [expandedId, setExpandedId] = useState<string>('');
   const [voiceSupported, setVoiceSupported] = useState(false);
+  const [confidenceFilter, setConfidenceFilter] = useState<'All' | 'High' | 'Medium' | 'Low'>('All');
+  const [results, setResults] = useState<MatchResult[]>([]);
 
   useEffect(() => {
     const saved = window.localStorage.getItem('benefitfinder-profiles-v2');
@@ -95,7 +97,12 @@ export default function BenefitFinderApp() {
   const selectedDiseaseNames = activeProfile?.diseaseCategory
     ? [...(diseaseCategories[activeProfile.diseaseCategory as keyof typeof diseaseCategories] ?? [])]
     : [];
-  const results = useMemo(() => (activeProfile ? findMatches(activeProfile) : []), [activeProfile]);
+
+  useEffect(() => {
+    setResults(activeProfile ? findMatches(activeProfile) : []);
+  }, [profiles, activeProfileId, activeProfile]);
+
+  const filteredResults = useMemo(() => (confidenceFilter === 'All' ? results : results.filter((result) => result.confidence === confidenceFilter)), [results, confidenceFilter]);
 
   function updateProfile<K extends keyof Profile>(key: K, value: Profile[K]) {
     setProfiles((current) =>
@@ -104,7 +111,9 @@ export default function BenefitFinderApp() {
         const updated = { ...profile, [key]: value };
         if (key === 'birthday') updated.age = calculateAge(String(value));
         if (key === 'zip') {
-          const location = inferLocationFromZip(String(value));
+          const normalizedZip = String(value).replace(/\D/g, '').slice(0, 5);
+          updated.zip = normalizedZip;
+          const location = inferLocationFromZip(normalizedZip);
           updated.city = location.city;
           updated.state = location.state;
         }
@@ -175,6 +184,7 @@ export default function BenefitFinderApp() {
           <button onClick={addProfile}>Add Profile</button>
           <button onClick={saveResultsAsPrint}>Print Results</button>
           <button onClick={speakTopResults} disabled={!results.length}>Read Top Results</button>
+          {filteredResults.length === 0 && <p className="smallMuted">No results match the current filter yet. Try switching back to All results.</p>}
         </div>
       </section>
 
@@ -193,6 +203,7 @@ export default function BenefitFinderApp() {
             ))}
           </div>
           <p className="smallMuted">Profiles are stored in this browser with local storage.</p>
+          <div className="liveStatus"><strong>Live matching</strong><span>Results refresh automatically whenever you change profile information.</span></div>
         </aside>
 
         {activeProfile && (
@@ -221,11 +232,11 @@ export default function BenefitFinderApp() {
               </label>
               <label>
                 Detected city
-                <input value={activeProfile.city} readOnly />
+                <input value={activeProfile.city || (activeProfile.zip.length === 5 ? 'No city match yet' : '')} readOnly />
               </label>
               <label>
                 Detected state
-                <input value={activeProfile.state} readOnly />
+                <input value={activeProfile.state || (activeProfile.zip.length === 5 ? 'No state match yet' : '')} readOnly />
               </label>
               <label>
                 Citizenship
@@ -362,6 +373,7 @@ export default function BenefitFinderApp() {
             <h2>Matched Results</h2>
             <p className="smallMuted">Results are grouped by confidence so users can focus first on the strongest opportunities.</p>
           </div>
+          <div className="filtersWrap"><label className="filterLabel">Show<select value={confidenceFilter} onChange={(e) => setConfidenceFilter(e.target.value as 'All' | 'High' | 'Medium' | 'Low')}><option value="All">All results</option><option value="High">High chance</option><option value="Medium">Possible fit</option><option value="Low">Lower fit</option></select></label></div>
         </div>
 
         <div className="summaryRow">
@@ -371,7 +383,7 @@ export default function BenefitFinderApp() {
         </div>
 
         <div className="resultsList">
-          {results.map((result: MatchResult) => (
+          {filteredResults.map((result: MatchResult) => (
             <article key={result.program.id} className="resultCard">
               <div className="resultHeader">
                 <div>
@@ -444,6 +456,7 @@ export default function BenefitFinderApp() {
               )}
             </article>
           ))}
+          {filteredResults.length === 0 && <p className="smallMuted">No results match the current filter yet. Try switching back to All results.</p>}
         </div>
       </section>
     </main>

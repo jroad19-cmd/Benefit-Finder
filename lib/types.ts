@@ -12,6 +12,8 @@ export type Program = {
   annualIncomeMax?: number;
   assetsMax?: number;
   householdMax?: number;
+  incomeIncreasePerAdditionalPersonAnnual?: number;
+  incomeIncreasePerAdditionalPersonMonthly?: number;
   medicalTags?: string[];
   currentBenefitTags?: string[];
   housingTags?: string[];

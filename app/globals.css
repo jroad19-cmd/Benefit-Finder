@@ -39,7 +39,7 @@ button { cursor: pointer; }
 .eyebrow { text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); font-size: 12px; font-weight: 700; }
 h1 { margin: 8px 0 10px; font-size: clamp(28px, 5vw, 42px); }
 .subcopy { max-width: 760px; color: var(--muted); line-height: 1.5; }
-.heroActions { display: flex; gap: 10px; align-items: start; flex-wrap: wrap; }
+.heroActions { display: flex; gap: 10px; align-items: flex-start; flex-wrap: wrap; }
 .heroActions button, .sectionTitleRow button, .linkButton, .chip, .profileSelect, .danger {
   border: 1px solid var(--border);
   background: #fff;
@@ -108,7 +108,7 @@ input, select, textarea {
 @media (max-width: 900px) {
   .grid.twoCol, .formGrid, .summaryRow, .drawer, .resultMetaGrid, .hero { grid-template-columns: 1fr; display: grid; }
   .resultHeader { flex-direction: column; }
-  .scoreWrap { align-items: start; }
+  .scoreWrap { align-items: flex-start; }
 }
 
 @media print {
@@ -116,3 +116,8 @@ input, select, textarea {
   .pageShell { width: 100%; }
   body { background: #fff; }
 }
+
+.liveStatus { margin-top: 14px; border: 1px solid var(--border); border-radius: 14px; padding: 12px; background: #f8faff; display: flex; flex-direction: column; gap: 4px; }
+.filtersWrap { display: flex; align-items: center; gap: 10px; }
+.filterLabel { font-size: 14px; font-weight: 700; }
+.filterLabel select { min-width: 150px; }
