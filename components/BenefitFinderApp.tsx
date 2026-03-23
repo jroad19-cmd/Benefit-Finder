@@ -166,10 +166,9 @@ export default function BenefitFinderApp() {
       <section className="hero">
         <div>
           <p className="eyebrow">Senior and disabled benefit discovery</p>
-          <h1>BenefitFinder Pro Stronger Build</h1>
+          <h1>BenefitFinder Pro Pennsylvania Data Build</h1>
           <p className="subcopy">
-            Guided benefit matching for federal, state, local, nonprofit, and unclaimed money opportunities. Built for seniors, disabled users,
-            caregivers, desktops, and smartphones.
+            Guided benefit matching with official Pennsylvania program data layered into the app for seniors, disabled users, caregivers, desktops, and smartphones.
           </p>
         </div>
         <div className="heroActions">
@@ -391,6 +390,21 @@ export default function BenefitFinderApp() {
                 <div><strong>Difficulty:</strong> {result.program.difficulty}</div>
                 <div><strong>Approval:</strong> {result.program.approvalEstimate}</div>
               </div>
+
+              {result.program.websiteUrl && (
+                <p className="smallMuted">
+                  <a href={result.program.websiteUrl} target="_blank" rel="noreferrer">{result.program.websiteLabel || 'Official program page'}</a>
+                </p>
+              )}
+
+              {result.program.eligibilitySummary && result.program.eligibilitySummary.length > 0 && (
+                <div className="whyPanel">
+                  <strong>Official eligibility highlights</strong>
+                  <ul>
+                    {result.program.eligibilitySummary.slice(0, 4).map((item) => <li key={item}>{item}</li>)}
+                  </ul>
+                </div>
+              )}
 
               <div className="whyPanel">
                 <strong>Why you may qualify</strong>
