@@ -1,5 +1,5 @@
 import BenefitFinderApp from '@/components/BenefitFinderApp';
 
-export default function HomePage() {
+export default function Page() {
   return <BenefitFinderApp />;
 }
