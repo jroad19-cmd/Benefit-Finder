@@ -1,27 +1,51 @@
-# Pennsylvania Senior & Disability Benefits Registry (Verified Starter Set)
+# BenefitFinder Pro - Pennsylvania Data Build
 
-This package is the reset for the app's eligibility layer.
+This build upgrades the app with **real Pennsylvania program data** and official state program links.
 
-It is intentionally strict and source-backed:
-- Every entry is tied to an official source.
-- Hard filters are separated from soft factors.
-- Programs that need current income tables are marked as do not show 100% until current rules are loaded.
-- Navigation/counseling results (PA MEDI, PA LINK) are separated from financial-benefit results.
+## Added or upgraded program data
+- Pennsylvania Property Tax/Rent Rebate Program
+- Pennsylvania SNAP
+- Pennsylvania Medicaid for Older People and People with Disabilities
+- Pennsylvania Community HealthChoices (CHC)
+- Pennsylvania Medicare Savings Programs guidance
+- Pennsylvania PACE / PACENET
+- Pennsylvania LIHEAP
+- Pennsylvania Senior Food Box Program
+- Pennsylvania Senior Farmers Market Nutrition Program
+- Pennsylvania Retired Status Vehicle Registration
+- Pennsylvania Unclaimed Property Search
+- Pennsylvania State Blind Pension
+- Pennsylvania Medical Assistance for Workers with Disabilities (MAWD)
+- Pennsylvania Breast & Cervical Cancer Prevention and Treatment (BCCPT)
+- Pennsylvania Breast & Cervical Cancer Early Detection Program (BCCEDP)
+- PA MEDI counseling
 
-## Files
-- pa_program_registry.json — structured program inventory for app ingestion
-- qa_truth_set.csv — minimum automated test cases the app must pass
-- implementation_notes.md — how to wire the registry safely
+## What changed in the app
+- Added official program URLs and labels inside results cards
+- Added official eligibility highlights to each result
+- Improved matching logic for:
+  - monthly vs annual income tests
+  - assets/resource-tested programs
+  - retirement/employment-sensitive programs
+  - housing-sensitive programs
+- Kept multi-profile and caregiver mode
+- Kept voice input and voice output
+- Kept print support
 
-## Rules the app should enforce
-1. Never show a disease-specific grant unless diagnosis scope matches.
-2. Never show state-only programs outside the required state.
-3. Treat owner/renter, age, Medicaid/Medicare, employment, and diagnosis as hard gates where specified.
-4. Never show 100% unless all hard gates pass and any required current income/resource tables are loaded.
-5. Show Possibly eligible — more info needed when the official source confirms the program exists but exact current numeric thresholds are not yet encoded.
+## GitHub update steps
+1. Download this zip file.
+2. Extract it on your computer.
+3. Open your GitHub repo.
+4. Replace the old files with the files from this extracted folder.
+5. Commit the changes.
+6. Vercel should auto-deploy, or you can click Redeploy in Vercel.
 
-## Status labels to use
-- Eligible — all hard filters passed and any numeric rules passed.
-- Possibly eligible — more info needed — user passes known hard filters, but current numeric tables or required follow-up data are missing.
-- Not eligible based on current inputs — one or more hard filters fail.
-- Open search opportunity — for unclaimed property and similar search-based flows.
+## Vercel settings
+- Framework Preset: Next.js
+- Install Command: npm install
+- Build Command: npm run build
+
+## Notes
+- This app now includes official Pennsylvania program references and starter eligibility logic.
+- It is still not a live API integration with every county or nonprofit source.
+- You can keep extending `data/programs.ts` with more local county and city programs.
