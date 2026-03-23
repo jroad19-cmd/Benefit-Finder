@@ -92,6 +92,9 @@ export default function BenefitFinderApp() {
   }, []);
 
   const activeProfile = profiles.find((p) => p.id === activeProfileId) ?? profiles[0];
+  const selectedDiseaseNames = activeProfile?.diseaseCategory
+    ? [...(diseaseCategories[activeProfile.diseaseCategory as keyof typeof diseaseCategories] ?? [])]
+    : [];
   const results = useMemo(() => (activeProfile ? findMatches(activeProfile) : []), [activeProfile]);
 
   function updateProfile<K extends keyof Profile>(key: K, value: Profile[K]) {
