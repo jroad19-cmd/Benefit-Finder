@@ -1,8 +1,8 @@
 import './globals.css';
 
 export const metadata = {
-  title: 'Benefit Finder Verified PA',
-  description: 'Verified Pennsylvania benefits and support finder starter'
+  title: 'Benefit Finder',
+  description: 'Senior and disability benefit finder'
 };
 
 export default function RootLayout({ children }) {
